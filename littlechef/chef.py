@@ -161,7 +161,7 @@ def _synchronize_node(configfile, node):
         ssh_opts += " " + env.gateway + " ssh -o StrictHostKeyChecking=no -i "
         ssh_opts += ssh_key_file
     else:
-        ssh_opts += ' -o StrictHostKeyChecking=no'
+        ssh_opts += ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
 
     rsync_project(
         env.node_work_path,
