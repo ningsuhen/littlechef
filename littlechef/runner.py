@@ -253,6 +253,25 @@ def role(role):
         chef.sync_node(data)
 
 
+def roles(*roles):
+    """Apply the given roles to a node
+    Sets the run_list to the given roles
+    If no nodes/hostname.json file exists, it creates one
+
+    """
+    env.host_string = lib.get_env_host_string()
+    lib.print_header(
+        "Applying roles '{0}' to {1}".format(roles, env.host_string))
+
+    # Now create configuration and sync node
+    data = lib.get_node(env.host_string)
+    data["run_list"] = ["role[{0}]".format(role) for role in roles]
+    if not __testing__:
+        if env.autodeploy_chef and not chef.chef_test():
+            deploy_chef(ask="no")
+        chef.sync_node(data)
+
+
 def ssh(name):
     """Executes the given command"""
     env.host_string = lib.get_env_host_string()
@@ -448,7 +467,7 @@ def _readconfig():
         env.remove_data_bags = config.get('userinfo', 'remove_data_bags')
     except ConfigParser.NoOptionError:
         env.remove_data_bags = False
-        
+
     # Check for an encrypted_data_bag_secret file and set the env option
     try:
         env.encrypted_data_bag_secret = config.get('userinfo',
