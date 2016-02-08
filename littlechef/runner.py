@@ -253,7 +253,7 @@ def role(role):
         chef.sync_node(data)
 
 
-def roles(*roles):
+def roles(*role_list, **kwargs):
     """Apply the given roles to a node
     Sets the run_list to the given roles
     If no nodes/hostname.json file exists, it creates one
@@ -261,11 +261,13 @@ def roles(*roles):
     """
     env.host_string = lib.get_env_host_string()
     lib.print_header(
-        "Applying roles '{0}' to {1}".format(roles, env.host_string))
+        "Applying roles '{0}' to {1}".format(role_list, env.host_string))
 
+    override_data = kwargs.get('data', {})
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
-    data["run_list"] = ["role[{0}]".format(role) for role in roles]
+    data.update(override_data)
+    data["run_list"] = ["role[{0}]".format(x) for x in role_list]
     if not __testing__:
         if env.autodeploy_chef and not chef.chef_test():
             deploy_chef(ask="no")
