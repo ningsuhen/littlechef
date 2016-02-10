@@ -200,7 +200,7 @@ def deploy_chef(ask="yes", version="12.5.1"):
         # Build a basic node file if there isn't one already
         # with some properties from ohai
         with settings(hide('stdout'), warn_only=True):
-            output = sudo('ohai -l warn')
+            output = sudo('ohai -l error')
         if output.succeeded:
             try:
                 ohai = json.loads(output)
