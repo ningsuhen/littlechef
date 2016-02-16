@@ -1,16 +1,16 @@
-#Copyright 2010-2015 Miquel Torres <tobami@gmail.com>
+# Copyright 2010-2015 Miquel Torres <tobami@gmail.com>
 #
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.
-#You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #    http://www.apache.org/licenses/LICENSE-2.0
 #
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 """LittleChef: Configuration Management using Chef Solo"""
 import ConfigParser
@@ -28,6 +28,7 @@ from littlechef import solo, lib, chef
 
 # Fabric settings
 import fabric
+
 fabric.state.output['running'] = False
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
@@ -50,6 +51,7 @@ __testing__ = False
 @hosts('setup')
 def new_kitchen():
     """Create LittleChef directory structure (Kitchen)"""
+
     def _mkdir(d, content=""):
         if not os.path.exists(d):
             os.mkdir(d)
@@ -146,11 +148,11 @@ def node(*nodes):
     env.all_hosts = list(env.hosts)  # Shouldn't be needed
 
     # Check whether another command was given in addition to "node:"
-    if not(littlechef.__cooking__ and
-            'node:' not in sys.argv[-1] and
-            'nodes_with_role:' not in sys.argv[-1] and
-            'nodes_with_recipe:' not in sys.argv[-1] and
-            'nodes_with_tag:' not in sys.argv[-1]):
+    if not (littlechef.__cooking__ and
+                    'node:' not in sys.argv[-1] and
+                    'nodes_with_role:' not in sys.argv[-1] and
+                    'nodes_with_recipe:' not in sys.argv[-1] and
+                    'nodes_with_tag:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
         with settings():
@@ -264,6 +266,7 @@ def roles(*role_list, **kwargs):
         "Applying roles '{0}' to {1}".format(role_list, env.host_string))
 
     override_data = kwargs.get('data', {})
+    on_sync = kwargs.get('on_sync', None)
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
     data.update(override_data)
@@ -271,14 +274,14 @@ def roles(*role_list, **kwargs):
     if not __testing__:
         if env.autodeploy_chef and not chef.chef_test():
             deploy_chef(ask="no")
-        chef.sync_node(data)
+        chef.sync_node(data, on_sync)
 
 
 def ssh(name):
     """Executes the given command"""
     env.host_string = lib.get_env_host_string()
     print("\nExecuting the command '{0}' on node {1}...".format(
-          name, env.host_string))
+        name, env.host_string))
     # Execute remotely using either the sudo or the run fabric functions
     with settings(hide("warnings"), warn_only=True):
         if name.startswith("sudo "):
@@ -517,14 +520,14 @@ def _readconfig():
         pass
 
     if (user_specified and not env.password and not env.key_filename
-            and not env.ssh_config):
+        and not env.ssh_config):
         abort('You need to define a password, keypair file, or ssh-config '
               'file in {0}'.format(littlechef.CONFIGFILE))
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
         env.node_work_path = os.path.expanduser(config.get('kitchen',
-                                                'node_work_path'))
+                                                           'node_work_path'))
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.node_work_path = littlechef.node_work_path
     else:
@@ -571,6 +574,7 @@ def _readconfig():
         env.autodeploy_chef = config.get('userinfo', 'autodeploy_chef') or None
     except ConfigParser.NoOptionError:
         env.autodeploy_chef = None
+
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:

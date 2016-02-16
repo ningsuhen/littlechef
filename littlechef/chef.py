@@ -1,16 +1,16 @@
-#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
+# Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
 #
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.
-#You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #    http://www.apache.org/licenses/LICENSE-2.0
 #
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 """Node configuration and syncing
 See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
@@ -83,7 +83,7 @@ def chef_test():
     return True
 
 
-def sync_node(node):
+def sync_node(node, on_sync=None):
     """Builds, synchronizes and configures a node.
     It also injects the ipaddress to the node's config file if not already
     existent.
@@ -103,6 +103,8 @@ def sync_node(node):
     try:
         # Synchronize the kitchen directory
         _synchronize_node(filepath, node)
+        if on_sync:
+            on_sync()
         # Execute Chef Solo
         _configure_node()
     finally:
@@ -178,12 +180,12 @@ def _synchronize_node(configfile, node):
                             env.sync_packages_dest_dir, env.host_string)
         try:
             rsync_project(
-              env.sync_packages_dest_dir,
-              env.sync_packages_local_dir+"/*",
-              exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
-              delete=True,
-              extra_opts=extra_opts,
-              ssh_opts=ssh_opts
+                env.sync_packages_dest_dir,
+                env.sync_packages_local_dir + "/*",
+                exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
+                delete=True,
+                extra_opts=extra_opts,
+                ssh_opts=ssh_opts
             )
         except:
             print("Warning: package upload failed. Continuing cooking...")
@@ -350,7 +352,7 @@ def build_node_data_bag():
 
         # Save node data bag item
         with open(os.path.join(
-                  'data_bags', 'node', node['id'] + '.json'), 'w') as f:
+                'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
 
 
@@ -368,7 +370,7 @@ def ensure_berksfile_cookbooks_are_installed():
 
     run_vendor = True
     cookbooks_dir = env.berksfile_cookbooks_directory
-    berksfile_lock_path = cookbooks_dir+'/Berksfile.lock'
+    berksfile_lock_path = cookbooks_dir + '/Berksfile.lock'
 
     berksfile_lock_exists = os.path.isfile(berksfile_lock_path)
     cookbooks_dir_exists = os.path.isdir(cookbooks_dir)
@@ -396,11 +398,13 @@ def _remove_remote_node_data_bag():
     if exists(node_data_bag_path):
         sudo("rm -rf {0}".format(node_data_bag_path))
 
+
 def _remove_remote_data_bags():
     """Remove remote data bags, so it won't leak any sensitive information"""
     data_bags_path = os.path.join(env.node_work_path, 'data_bags')
     if exists(data_bags_path):
         sudo("rm -rf {0}".format(data_bags_path))
+
 
 def _node_cleanup():
     if env.loglevel is not "debug":
@@ -454,7 +458,7 @@ def _configure_node():
         output = sudo(cmd)
     if (output.failed or "FATAL: Stacktrace dumped" in output or
             ("Chef Run complete" not in output and
-             "Report handlers complete" not in output)):
+                     "Report handlers complete" not in output)):
         if 'chef-solo: command not found' in output:
             print(
                 colors.red(
